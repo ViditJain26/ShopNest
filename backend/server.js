@@ -3,6 +3,7 @@ const dotenv = require("dotenv");
 const cors = require("cors");
 const connectDB = require("./config/db");
 const path = require("path");
+const mongoose = require("mongoose");
 
 // Explicitly load .env file from the current directory
 dotenv.config();
@@ -11,6 +12,15 @@ dotenv.config();
 connectDB();
 
 const app = express();
+
+// Middleware to ensure DB connection is ready before handling requests (crucial for Serverless Vercel)
+app.use(async (req, res, next) => {
+  if (mongoose.connection.readyState !== 1) {
+    console.log("🔄 Database connection not ready, connecting...");
+    await connectDB();
+  }
+  next();
+});
 
 // Enable CORS for allowed origins
 app.use(
